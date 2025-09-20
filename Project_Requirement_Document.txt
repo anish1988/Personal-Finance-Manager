@@ -1,0 +1,817 @@
+Perfect 👌 — let’s set this up like a real-world Agile project blueprint that a top-tier product team would follow. I’ll structure this into Requirement Docs, Analysis, Functional/Non-functional Specs, System Design, Module Breakdown, Milestones, Tasks & Subtasks. This way you’ll have everything needed to run the project in Agile (Scrum/Kanban) with clear deliverables and a roadmap that scales into a mobile app later.
+
+📑 1. Project Requirement Document (PRD)
+Project Name: Personal Finance Manager
+ Goal:
+ To build a secure, scalable, and intelligent web application that allows users to track their income and expenses, manually or via bank file upload, with LLM-powered transaction categorization and visual dashboards. Future expansion includes a mobile app.
+Stakeholders:
+Product Owner (you)
+
+
+Developers (Backend, Frontend, DevOps)
+
+
+QA/Testers
+
+
+UX/UI Designer
+
+
+End Users
+
+
+Key Features:
+Manual add of income/expense
+
+
+Upload of bank transactions (CSV/XLSX) → Auto classification via LLM + rules
+
+
+Standard categories & subcategories
+
+
+Graphs & dashboards (spending trends, income vs expense, category breakdown)
+
+
+Secure authentication & multi-user support
+
+
+Export/Reports (CSV, PDF)
+
+
+Future: Mobile App (React Native or React + Express backend)
+
+
+
+🔍 2. Requirement Analysis
+Functional Requirements
+User Management
+
+
+Register, Login (JWT-based), Profile management.
+
+
+Transactions
+
+
+Add income/expense manually.
+
+
+Upload transactions (CSV/XLSX).
+
+
+Auto-categorization using rules + LLM.
+
+
+Edit/delete/correct category mappings.
+
+
+Categories
+
+
+Predefined taxonomy (Food, Transport, Bills, Income, etc.).
+
+
+Allow extension/custom categories (Phase 2).
+
+
+Analytics & Dashboard
+
+
+Graphs: pie chart by category, monthly bar chart, income vs expense line chart.
+
+
+Filters: date range, category, income vs expense.
+
+
+Reports
+
+
+Export summary to CSV/PDF.
+
+
+Admin/Settings
+
+
+Manage categories, users (admin role).
+
+
+Non-Functional Requirements
+Performance: Process 10k+ transactions under 2s per upload batch.
+
+
+Scalability: Support 1M+ transactions per user in long term.
+
+
+Security:
+
+
+Password hashing (bcrypt/argon2).
+
+
+JWT auth, HTTPS, secure API keys.
+
+
+Role-based access (user, admin).
+
+
+Availability: 99.9% uptime target.
+
+
+Extensibility: Support mobile app via REST API.
+
+
+Usability: Simple, intuitive UI; responsive (desktop + mobile).
+
+
+Maintainability: Modular code, SOLID principles, microservice-ready.
+
+
+Logging/Monitoring: API logs, error tracking (ELK/Prometheus).
+
+
+
+🏗 3. High-Level System Design
+Architecture
+Frontend (React.js + Recharts/Chart.js)
+
+
+UI for transactions, dashboard, file upload.
+
+
+Backend (FastAPI + Python)
+
+
+API endpoints, business logic, categorization service.
+
+
+LLM Orchestration (LangChain/LangGraph)
+
+
+Transaction classifier (rule-based + AI fallback).
+
+
+Database (PostgreSQL)
+
+
+User, transaction, categories, logs.
+
+
+Storage
+
+
+Uploaded files temporarily stored (S3/minio in future).
+
+
+Authentication
+
+
+JWT tokens, bcrypt password hashing.
+
+
+Deployment
+
+
+Docker + Docker Compose → scalable to Kubernetes later.
+
+
+
+🧩 4. Breakdown into Modules → Phases (Milestones)
+Phase 1: Core Setup & Manual Transactions
+Setup repo, Docker, CI/CD pipeline.
+
+
+Backend: FastAPI skeleton, DB schema, migrations.
+
+
+Frontend: React skeleton with login & add-transaction form.
+
+
+Categories seed data.
+
+
+Manual add/list transactions.
+
+
+Phase 2: File Upload & Auto-Categorization
+File upload API (CSV/XLSX → Pandas parsing).
+
+
+Rule-based classifier (keywords, regex).
+
+
+LLM integration (LangChain).
+
+
+Store normalized transactions in DB.
+
+
+Frontend upload + preview UI.
+
+
+Phase 3: Dashboard & Analytics
+API: Aggregates (sum by category, monthly trend).
+
+
+Frontend: Pie, bar, line charts (Chart.js/Recharts).
+
+
+Filters: date, category.
+
+
+Phase 4: Authentication & Security
+JWT login/register.
+
+
+Role-based access (user/admin).
+
+
+Profile settings.
+
+
+Phase 5: Reports & Export
+API to generate CSV/PDF reports.
+
+
+Frontend export button.
+
+
+Phase 6: Optimization & Scaling
+Redis cache for repeated classification.
+
+
+Background worker for uploads (Celery/RQ).
+
+
+Monitoring (Prometheus/Grafana).
+
+
+Phase 7 (Future): Mobile App
+REST API stabilization for mobile use.
+
+
+React Native app → reuse components from React web.
+
+
+Sync features (offline-first optional).
+
+
+
+📌 5. Module → Tasks & Subtasks
+Module A: Project Setup
+Setup Git repo with CI/CD.
+
+
+Docker Compose: backend, frontend, DB.
+
+
+Setup Postgres schema + migrations.
+
+
+Seed categories.
+
+
+Module B: User & Auth
+Backend API: register/login/logout (JWT).
+
+
+Hashing passwords.
+
+
+JWT token generation/validation.
+
+
+Frontend auth pages (login/register).
+
+
+Middleware for protected routes.
+
+
+Module C: Transactions (Manual)
+API: Add/list transactions.
+
+
+DB models for transactions.
+
+
+Frontend form for add/edit.
+
+
+Table view with pagination/filter.
+
+
+Module D: Transactions (File Upload)
+Backend: CSV/XLSX parser.
+
+
+Rule-based categorizer.
+
+
+LLM categorizer integration.
+
+
+Store results with confidence score.
+
+
+Frontend: Upload file + preview.
+
+
+Module E: Dashboard & Analytics
+API: Aggregate by category/month.
+
+
+Charts:
+
+
+Pie chart (category distribution).
+
+
+Line chart (income vs expense trend).
+
+
+Bar chart (monthly totals).
+
+
+Filters (date range, category).
+
+
+Module F: Reports
+API: CSV export.
+
+
+API: PDF export.
+
+
+Frontend export button.
+
+
+Module G: Optimization
+Cache frequent merchant classifications.
+
+
+Background tasks for batch uploads.
+
+
+Monitoring/logging integration.
+
+
+Module H: Mobile App (Future)
+API adjustments for mobile.
+
+
+React Native skeleton.
+
+
+Reuse components (dashboard, transactions).
+
+
+
+📅 6. Milestones (Agile Sprint Plan)
+Sprint 1 (2 weeks): Setup + Auth + Manual transactions
+
+
+Sprint 2 (2 weeks): File upload + Rule-based categorizer
+
+
+Sprint 3 (2 weeks): LLM integration + Dashboard analytics
+
+
+Sprint 4 (2 weeks): Reports + Export features + UX polish
+
+
+Sprint 5 (2 weeks): Optimization, background tasks, monitoring
+
+
+Sprint 6 (Future): Mobile app
+
+
+
+✅ 7. Agile Practices (as top companies follow)
+Sprint length: 2 weeks
+
+
+Artifacts:
+
+
+Product backlog (features, epics)
+
+
+Sprint backlog (selected tasks)
+
+
+Daily standups (15 min)
+
+
+Sprint review/demo
+
+
+Retrospective (improve team process)
+
+
+Tracking tools: JIRA / Trello / GitHub Projects
+
+
+Definition of Done (DoD):
+
+
+Code reviewed + merged
+
+
+Unit/integration tests passed
+
+
+Deployed on staging
+
+
+Documentation updated
+
+
+
+
+
+📂 Epics, Stories, Tasks Breakdown
+
+Nice 👌 you’ve written a very clear **Epic 1**. Let’s refine it a little so it fully respects **SOLID** (for code design), **12-Factor App** (for infra), and **Agile** (for breakdown).
+
+---
+
+# 📌 Refined Epic 1: Project Setup
+
+**Epic 1: Project Setup**
+As a developer, I want a properly structured repo, environment, and baseline infra so that all contributors can start development smoothly, and the project adheres to **SOLID principles** and the **12-Factor App methodology** from the beginning.
+
+---
+
+## ✅ User Stories
+
+### **User Story 1.1**
+
+*As a developer, I want to set up the project repository with a clear structure and guidelines so that contributors can work consistently.*
+**Acceptance Criteria:**
+
+* Repo created with `README.md`, `.gitignore`, `CONTRIBUTING.md`
+* Branch strategy documented (e.g., `main`, `develop`, feature branches)
+* Folder structure reflects **Clean Architecture** + **DDD**
+
+---
+
+### **User Story 1.2**
+
+*As a developer, I want to set up containerized services (backend, frontend, DB) using Docker Compose so that dev/prod parity is ensured.*
+**Acceptance Criteria:**
+
+* Docker Compose brings up backend, frontend, and Postgres successfully
+* Config managed via `.env` (12-Factor: config externalized)
+* Each service logs to stdout/stderr (12-Factor: logs as streams)
+
+---
+
+### **User Story 1.3**
+
+*As a developer, I want to implement database migrations so that schema changes are version-controlled and repeatable.*
+**Acceptance Criteria:**
+
+* Alembic integrated with SQLAlchemy
+* `alembic.ini` configured
+* Example migration generated & applied
+
+---
+
+### **User Story 1.4**
+
+*As a developer, I want to seed standard categories and subcategories so that users have a baseline for expense tracking.*
+**Acceptance Criteria:**
+
+* Init SQL or Alembic seed script available
+* Categories/Subcategories created: e.g. Food > Groceries, Transport > Fuel, etc.
+* Idempotent (safe to re-run)
+
+---
+
+### **User Story 1.5**
+
+*As a developer, I want a CI/CD pipeline so that builds, tests, and deployments run automatically.*
+**Acceptance Criteria:**
+
+* GitHub Actions (or Jenkins) workflow defined
+* On every push: linting + tests + build containers
+* On `main` branch: deploy (staging/prod environment ready for future)
+
+---
+
+## 🛠 Tasks & Subtasks
+
+### **Task 1: Create Repo & Base Structure**
+
+* Subtask 1.1: Create GitHub/GitLab repo
+* Subtask 1.2: Add `README.md`, `.gitignore`, `CONTRIBUTING.md`
+* Subtask 1.3: Define branch strategy
+
+### **Task 2: Configure Docker Compose**
+
+* Subtask 2.1: Backend `Dockerfile` (FastAPI, requirements.txt)
+* Subtask 2.2: Frontend `Dockerfile` (React, package.json)
+* Subtask 2.3: Postgres service with `.env` configs
+* Subtask 2.4: Run `docker-compose up` and validate
+
+### **Task 3: Setup Database Migrations**
+
+* Subtask 3.1: Install Alembic
+* Subtask 3.2: Configure `alembic.ini` for Postgres
+* Subtask 3.3: Create initial migration for `transactions` table
+
+### **Task 4: Seed Categories/Subcategories**
+
+* Subtask 4.1: Define category/subcategory model in SQLAlchemy
+* Subtask 4.2: Write seed script (via Alembic or custom script)
+* Subtask 4.3: Test idempotency (running multiple times doesn’t break DB)
+
+### **Task 5: Configure CI/CD**
+
+* Subtask 5.1: Create GitHub Actions workflow
+* Subtask 5.2: Add jobs: lint, test, build containers
+* Subtask 5.3: Setup staging deploy step (placeholder for now)
+
+---
+
+## 🔑 Why This Matches Principles
+
+* **SOLID:** Repo is modular (services, migrations, seeding separated).
+* **12-Factor App:** Config externalized, backing services attached (Postgres), dev/prod parity enforced (Docker), logs streamed.
+* **Agile:** Clear Epic → Stories → Tasks → Subtasks breakdown.
+* **Clean Arch/DDD:** Structure enforces separation between domain logic, infra, and delivery from the beginning.
+
+---
+
+
+
+
+Epic 2: User & Authentication
+User Story 2.1: As a user, I want to register with email/password so that I can have a secure personal account.
+Acceptance Criteria:
+
+
+User can register with unique email.
+
+
+Passwords stored as hashed values.
+
+
+Duplicate registration prevented.
+
+
+Tasks/Subtasks:
+Backend API: /auth/register.
+
+
+DB: Users table.
+
+
+Hashing passwords (bcrypt).
+
+
+Unit tests for registration.
+
+
+User Story 2.2: As a user, I want to log in and get a secure token so that I can access my data.
+Acceptance Criteria:
+
+
+Login validates credentials.
+
+
+Returns JWT token.
+
+
+Token expires after X hours.
+
+
+Tasks/Subtasks:
+Backend API: /auth/login.
+
+
+JWT token generation/validation.
+
+
+Frontend login page with form.
+
+
+Middleware to protect routes.
+
+
+
+Epic 3: Manual Transactions
+User Story 3.1: As a user, I want to add income or expense manually so that I can record transactions easily.
+Acceptance Criteria:
+
+
+User can select date, amount, description, type (income/expense), category.
+
+
+Transaction saved in DB and visible in list.
+
+
+Tasks/Subtasks:
+Backend API: /transactions (POST).
+
+
+DB: Transactions table.
+
+
+Frontend form to add transaction.
+
+
+Validation (amount > 0, date valid).
+
+
+User Story 3.2: As a user, I want to view my transactions in a table so that I can see all records.
+Acceptance Criteria:
+
+
+Table shows all transactions with pagination.
+
+
+Filters by date, category, type.
+
+
+Tasks/Subtasks:
+Backend API: /transactions (GET with filters).
+
+
+Frontend: Transactions table with filter UI.
+
+
+
+Epic 4: File Upload & Categorization
+User Story 4.1: As a user, I want to upload my bank statement (CSV/XLSX) so that transactions are automatically added.
+Acceptance Criteria:
+
+
+User can upload CSV/XLSX.
+
+
+System parses rows, normalizes date/amount.
+
+
+Preview shown before final save.
+
+
+Tasks/Subtasks:
+Backend API: /upload.
+
+
+Pandas parser for CSV/XLSX.
+
+
+Frontend upload form + preview table.
+
+
+User Story 4.2: As a user, I want my transactions auto-categorized so that I don’t have to assign categories manually.
+Acceptance Criteria:
+
+
+Rule-based classification for common merchants.
+
+
+LLM-based classification for complex cases.
+
+
+Each transaction has category, subcategory, confidence score.
+
+
+Tasks/Subtasks:
+Rule-based classifier (keywords, regex).
+
+
+LangChain LLM categorizer.
+
+
+Merge rule-based + LLM results.
+
+
+Store normalized description + confidence.
+
+
+
+Epic 5: Dashboard & Analytics
+User Story 5.1: As a user, I want to see my expenses in graphs so that I can understand my spending.
+Acceptance Criteria:
+
+
+Pie chart: category distribution.
+
+
+Bar chart: monthly totals.
+
+
+Line chart: income vs expense over time.
+
+
+Tasks/Subtasks:
+Backend API: /analytics (aggregate by category/date).
+
+
+Frontend: Pie chart (Recharts).
+
+
+Frontend: Bar chart (monthly).
+
+
+Frontend: Line chart (income vs expense).
+
+
+
+Epic 6: Reports & Export
+User Story 6.1: As a user, I want to export my transactions to CSV/PDF so that I can keep offline records.
+Acceptance Criteria:
+
+
+CSV export includes all fields.
+
+
+PDF export includes summary + charts.
+
+
+Tasks/Subtasks:
+Backend API: /export/csv, /export/pdf.
+
+
+Frontend export buttons.
+
+
+
+Epic 7: Optimization & Scaling
+User Story 7.1: As a user, I want the system to process uploads quickly even with large files.
+Acceptance Criteria:
+
+
+Upload 10k transactions in <5 seconds.
+
+
+Categorization runs async if needed.
+
+
+Tasks/Subtasks:
+Redis cache for merchant classifications.
+
+
+Async background worker (Celery/RQ).
+
+
+Monitoring & error logging.
+
+
+
+Epic 8: Mobile App (Future)
+User Story 8.1: As a user, I want to use a mobile app so that I can track expenses on the go.
+Acceptance Criteria:
+
+
+Same API endpoints used by mobile app.
+
+
+React Native app with login, add transactions, dashboard.
+
+
+Tasks/Subtasks:
+Define API contract for mobile use.
+
+
+Create React Native skeleton.
+
+
+Reuse dashboard/transaction components.
+
+
+
+📊 Suggested Sprint Plan (2-week sprints)
+Sprint 1: Epic 1 + Epic 2 + part of Epic 3
+
+
+Sprint 2: Finish Epic 3 + Epic 4 (upload/parser)
+
+
+Sprint 3: Epic 4 (LLM categorizer) + Epic 5 (basic dashboard)
+
+
+Sprint 4: Finish Epic 5 + Epic 6 (export)
+
+
+Sprint 5: Epic 7 (optimization, scaling, monitoring)
+
+
+Sprint 6: Epic 8 (mobile skeleton)
+
+
+
+Stack of Principles for This Project
+Backend code design → SOLID + DDD + Clean Architecture
+
+
+Deployment & infra → 12-Factor App + Docker best practices
+
+
+Process/methodology → Agile Scrum + CI/CD + DevOps
+
+
+

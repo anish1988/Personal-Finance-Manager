@@ -1,0 +1,138 @@
+
+
+# 📂 Project Blueprint (Finance App)
+
+```
+personal-finance-app/
+│── backend/
+│   │── Dockerfile
+│   │── requirements.txt
+│   │── src/
+│   │   │── main.py                 # FastAPI entrypoint
+│   │   │── config/                 # 12-Factor: externalize config
+│   │   │   │── settings.py
+│   │   │
+│   │   │── domain/                 # DDD: Core business logic
+│   │   │   │── entities/           # Entities & Value Objects
+│   │   │   │   │── transaction.py
+│   │   │   │   │── category.py
+│   │   │   │   │── user.py
+│   │   │   │   │── value_objects.py  # e.g. Money, DateRange
+│   │   │   │── repositories/       # Interfaces (abstractions)
+│   │   │   │   │── transaction_repository.py
+│   │   │   │── services/           # Use cases (application logic)
+│   │   │   │   │── transaction_service.py
+│   │   │   │   │── category_service.py
+│   │   │   │   │── reporting_service.py
+│   │   │
+│   │   │── infrastructure/         # Adapters & implementations
+│   │   │   │── db/
+│   │   │   │   │── postgres_repository.py
+│   │   │   │── ai/
+│   │   │   │   │── transaction_analyzer.py  # LLM-based analysis
+│   │   │
+│   │   │── api/                    # Delivery layer (FastAPI endpoints)
+│   │   │   │── routes/
+│   │   │   │   │── transactions.py
+│   │   │   │   │── categories.py
+│   │   │   │   │── reports.py
+│   │   │   │── dependencies.py
+│   │   │
+│   │   │── tests/                  # Unit + integration tests
+│   │   │   │── test_transactions.py
+│   │   │   │── test_categories.py
+│   │   │
+│
+│── frontend/
+│   │── Dockerfile
+│   │── src/
+│   │   │── components/
+│   │   │── pages/
+│   │   │── services/   # API calls to backend
+│   │   │── store/      # State management (Redux or Context API)
+│   │   │── utils/
+│
+│── db/
+│   │── init.sql
+│
+│── docker-compose.yml
+│── .env
+```
+
+---
+
+# 🧩 How Principles Apply Here
+
+### ✅ **SOLID**
+
+* **SRP:** `TransactionService` only manages transactions, `PostgresRepository` only handles DB persistence.
+* **OCP:** Add new categories by extending `CategoryService`, not modifying core logic.
+* **LSP:** Any repository (Postgres, MySQL, Mock) should behave the same for services.
+* **ISP:** Separate interfaces for `TransactionRepository`, `CategoryRepository`.
+* **DIP:** Services depend on repository interfaces, not concrete Postgres classes.
+
+---
+
+### ✅ **DDD**
+
+* **Entities:** `Transaction`, `Category`, `User`.
+* **Value Objects:** `Money`, `DateRange`.
+* **Repositories:** Abstract interfaces (`TransactionRepository`) define contract for persistence.
+* **Services (Use cases):** `TransactionService` implements business rules (add income, upload bank file, analyze).
+* **Bounded Contexts:**
+
+  * *Transactions* (income, expense, upload)
+  * *Categories* (standard/sub categories)
+  * *Reports* (graphs, summaries)
+
+---
+
+### ✅ **Clean Architecture**
+
+* **Domain Layer** (pure logic, no external deps): `entities`, `repositories`, `services`.
+* **Infrastructure Layer** (adapters): Postgres, LangChain, file parsers.
+* **Application Layer** (delivery): FastAPI routes.
+* **UI Layer:** React frontend, mobile later.
+
+---
+
+### ✅ **12-Factor App**
+
+* Config in `.env` (not hardcoded).
+* Backend & frontend both containerized.
+* Stateless services (scalable).
+* Logs written to stdout (not files).
+* Database as attached resource.
+
+---
+
+# 📌 Next Steps (Agile Breakdown)
+
+### Phase 1 – Infrastructure Setup
+
+* ✅ Repo & Docker Compose
+* 🔄 Backend skeleton (FastAPI, Clean Arch structure)
+* 🔄 Frontend skeleton (React, Redux setup)
+* 🔄 Postgres schema migration
+
+### Phase 2 – Core Features
+
+* Add income/expense manually (backend + frontend form)
+* Standard categories & subcategories
+* Database integration with SQLAlchemy
+* Unit tests for services & repositories
+
+### Phase 3 – Advanced Features
+
+* Upload bank statement → AI/Python parser → auto categorize
+* Generate expense reports with charts (Recharts in React)
+* Export reports (CSV/PDF)
+
+### Phase 4 – DevOps & Scaling
+
+* CI/CD pipeline
+* Production Docker setup
+* Monitoring/logging
+
+---
+
