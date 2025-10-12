@@ -1,0 +1,36 @@
+version: '3.9'
+
+services:
+  backend:
+    build: ./backend
+    container_name: finance_backend
+    ports:
+      - "8000:8000"
+    env_file: .env
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    container_name: finance_frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:15
+    container_name: finance_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  db_data:
