@@ -136,3 +136,20 @@ personal-finance-app/
 
 ---
 
+backend/src/
+├── api/
+│   └── auth/
+│       ├── controller.py       # FastAPI endpoints (/auth/register, /auth/login)
+│       └── schemas.py          # Pydantic models for requests/responses
+├── core/
+│   └── config.py               # Environment variables, JWT secret, token expiry
+├── infrastructure/
+│   └── db/
+│       ├── models.py           # SQLAlchemy User model
+│       └── repository.py       # UserRepository: DB access
+├── services/
+│   ├── user_service.py         # Registration & login logic
+│   └── jwt_service.py          # JWT generation & validation
+├── tests/
+│   └── test_auth.py            # Unit tests for auth
+└── main.py                      # FastAPI app entry point

@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Date, DateTime, ForeignKey, func
 from sqlalchemy.orm import declarative_base, relationship
+from datetime import datetime
 
 Base = declarative_base()
 
@@ -20,3 +21,13 @@ class Category(Base):
     name = Column(String, unique=True, nullable=False)
 
     transactions = relationship("Transaction", back_populates="category")
+
+class User(Base):
+    __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    email = Column(String, unique=True, index=True)   
+    password_hash = Column(String(255), nullable=False)  # match DB
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())

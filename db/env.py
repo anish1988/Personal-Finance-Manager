@@ -10,7 +10,7 @@ from alembic import context
 # /app is the root of your project in Docker
 #sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'backend', 'src')))
 # Add backend/src to sys.path
-sys.path.append("/backend/src")
+sys.path.append("/app/src")
 # ------------------------------------------------------------------------
 
 # Alembic Config object
@@ -25,7 +25,7 @@ if db_url:
     config.set_main_option("sqlalchemy.url", db_url)
 
 # ------------------ Import your SQLAlchemy Base ------------------
-from backend.src.infrastructure.db.models import Base  # This path is relative to sys.path above
+from infrastructure.db.models import Base  # This path is relative to sys.path above
 target_metadata = Base.metadata
 # ------------------------------------------------------------------
 

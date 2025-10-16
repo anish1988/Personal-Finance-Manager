@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from domain.services.user_service import UserService
-from domain.services.jwt_service import JWTService
-from domain.repositories.user_repository import UserRepositoryInterface
-from infrastructure.db.postgres_repository import PostgresUserRepository
-from domain.entities.user import User
-from api.dependencies import get_db
+from ...domain.services.user_service import UserService
+from ...domain.services.jwt_service import JWTService
+from ...domain.repositories.user_repository import UserRepositoryInterface
+from src.infrastructure.db.postgres_repository import PostgresUserRepository
+from ...domain.entities.user import User
+from src.api.dependencies import get_db
 from pydantic import BaseModel, EmailStr
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -37,6 +37,12 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 @router.post("/login", response_model=LoginResponse)
+
+@router.get("/", summary="auth root / health")
+async def auth_root():
+    return {"message": "Auth router is mounted (use /auth/register for registration)"}
+
+
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     user_repo: UserRepositoryInterface = PostgresUserRepository(db)
     service = UserService(user_repo)

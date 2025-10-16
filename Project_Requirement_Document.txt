@@ -534,6 +534,132 @@ As a developer, I want a properly structured repo, environment, and baseline inf
 
 ---
 
+Epic 2 
+
+Perfect! Let’s break down **Epic 2: User & Authentication** into **detailed tasks, subtasks, and milestones**, fully aligned with **SOLID, 12-Factor, and best practices**. This will let you track progress clearly in your Agile workflow.
+
+---
+
+# **Epic 2: User & Authentication**
+
+## **Milestone 2.1: Backend User Registration**
+
+**User Story 2.1:** As a user, I want to register with email/password so that I can have a secure personal account.
+
+**Tasks/Subtasks:**
+
+### **Task 2.1.1: Database & Model**
+
+* **2.1.1.1:** Create `users` table (id, email, hashed_password, created_at, updated_at)
+* **2.1.1.2:** Create `User` SQLAlchemy model
+* **2.1.1.3:** Create repository layer (`UserRepository`) for DB operations
+* **2.1.1.4:** Write Alembic migration for `users` table
+
+### **Task 2.1.2: Service Layer**
+
+* **2.1.2.1:** Implement `UserService.register_user(email, password)`
+
+  * Validate unique email
+  * Hash password with bcrypt
+  * Call repository to persist user
+* **2.1.2.2:** Implement error handling (duplicate email, invalid input)
+
+### **Task 2.1.3: Controller / API**
+
+* **2.1.3.1:** Create FastAPI endpoint: `/auth/register`
+* **2.1.3.2:** Create Pydantic schemas for request/response
+* **2.1.3.3:** Handle HTTP status codes and errors
+
+### **Task 2.1.4: Unit Tests**
+
+* **2.1.4.1:** Test service layer (`UserService`) for registration logic
+* **2.1.4.2:** Test controller layer (FastAPI endpoint) with test client
+* **2.1.4.3:** Test duplicate registration prevention
+
+---
+
+## **Milestone 2.2: Backend User Login & JWT**
+
+**User Story 2.2:** As a user, I want to log in and get a secure token so that I can access my data.
+
+**Tasks/Subtasks:**
+
+### **Task 2.2.1: Service Layer**
+
+* **2.2.1.1:** Implement `UserService.authenticate_user(email, password)`
+* **2.2.1.2:** Implement `JWTService.create_token(user_id)`
+* **2.2.1.3:** Implement `JWTService.verify_token(token)`
+* **2.2.1.4:** Set token expiration (configurable via `.env`)
+
+### **Task 2.2.2: Controller / API**
+
+* **2.2.2.1:** Create FastAPI endpoint: `/auth/login`
+* **2.2.2.2:** Create Pydantic schemas for request/response
+* **2.2.2.3:** Return JWT in response (JSON)
+
+### **Task 2.2.3: Middleware**
+
+* **2.2.3.1:** Implement `auth_required` decorator/middleware
+* **2.2.3.2:** Protect routes that require authentication
+* **2.2.3.3:** Handle expired/invalid tokens
+
+### **Task 2.2.4: Unit Tests**
+
+* **2.2.4.1:** Test `UserService.authenticate_user()` with valid & invalid credentials
+* **2.2.4.2:** Test JWT token creation & verification
+* **2.2.4.3:** Test middleware token validation on protected routes
+
+---
+
+## **Milestone 2.3: Frontend Integration**
+
+**Tasks/Subtasks:**
+
+### **Task 2.3.1: Registration Page**
+
+* **2.3.1.1:** Create registration form (email, password, confirm password)
+* **2.3.1.2:** Form validation & error messages
+* **2.3.1.3:** Connect to `/auth/register` endpoint
+* **2.3.1.4:** Handle successful registration (redirect/login)
+
+### **Task 2.3.2: Login Page**
+
+* **2.3.2.1:** Create login form (email/password)
+* **2.3.2.2:** Validate input & show error messages
+* **2.3.2.3:** Connect to `/auth/login` endpoint
+* **2.3.2.4:** Store JWT securely (HttpOnly cookie or local storage)
+* **2.3.2.5:** Redirect to dashboard on success
+
+### **Task 2.3.3: Protected Routes**
+
+* **2.3.3.1:** Implement frontend route protection (check JWT token)
+* **2.3.3.2:** Redirect unauthenticated users to login page
+
+---
+
+## **Priority & Sequence**
+
+1. **Backend Registration & Unit Tests** ✅
+2. **Backend Login & JWT + Middleware** ✅
+3. **Frontend Registration + Login + Protected Routes**
+
+> Following this order ensures **SOLID separation of layers**, **12-Factor compliance** (config/env, stateless services), and **test coverage** at every step.
+
+---
+
+If you want, I can **now generate the actual folder structure and starter files for Epic 2 backend**, with:
+
+* `User` model
+* Repository + Service skeleton
+* FastAPI controller
+* Pydantic schemas
+* Unit test file
+
+This way you can start coding **task by task** immediately.
+
+Do you want me to generate that next?
+
+
 ## 🔑 Why This Matches Principles
 
 * **SOLID:** Repo is modular (services, migrations, seeding separated).

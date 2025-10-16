@@ -5,6 +5,6 @@ from datetime import datetime
 class User:
     id: int | None
     email: str
-    hashed_password: str
+    password_hash: str
     created_at: datetime | None = None
     updated_at: datetime | None = None

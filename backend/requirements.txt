@@ -6,3 +6,9 @@ alembic
 pydantic
 python-dotenv
 alembic
+bcrypt
+jwt
+config
+pydantic-settings
+email-validator
+pydantic[email]

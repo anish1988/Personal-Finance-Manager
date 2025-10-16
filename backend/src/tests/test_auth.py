@@ -24,4 +24,4 @@ def test_register_user():
     user = service.register_user("test@example.com", "password123")
     assert user.id == 1
     assert user.email == "test@example.com"
-    assert user.hashed_password != "password123"  # ensure hashed
+    assert user.password_hash != "password123"  # ensure hashed

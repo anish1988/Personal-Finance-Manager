@@ -1,14 +1,14 @@
 from sqlalchemy.orm import Session
-from domain.repositories.user_repository import UserRepositoryInterface
-from domain.entities.user import User
-from infrastructure.db.models import User as UserModel
+from ...domain.repositories.user_repository import UserRepositoryInterface
+from ...domain.entities.user import User
+from src.infrastructure.db.models import User as UserModel
 
 class PostgresUserRepository(UserRepositoryInterface):
     def __init__(self, db: Session):
         self.db = db
 
     def create_user(self, user: User) -> User:
-        db_user = UserModel(email=user.email, hashed_password=user.hashed_password)
+        db_user = UserModel(email=user.email, password_hash=user.password_hash)
         self.db.add(db_user)
         self.db.commit()
         self.db.refresh(db_user)
@@ -24,7 +24,8 @@ class PostgresUserRepository(UserRepositoryInterface):
         return User(
             id=db_user.id,
             email=db_user.email,
-            hashed_password=db_user.hashed_password,
+            password_hash=db_user.password_hash,
             created_at=db_user.created_at,
             updated_at=db_user.updated_at
         )
+

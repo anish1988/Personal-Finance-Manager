@@ -1,6 +1,6 @@
 import jwt
 from datetime import datetime, timedelta
-from config.settings import settings
+from src.config.settings import settings
 
 class JWTService:
     @staticmethod
