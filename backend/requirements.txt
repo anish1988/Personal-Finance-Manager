@@ -12,3 +12,6 @@ config
 pydantic-settings
 email-validator
 pydantic[email]
+pytest  
+httpx  
+PyJWT

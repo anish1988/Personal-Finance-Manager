@@ -1,0 +1,28 @@
+# Dockerfile.backend - place at repo root
+FROM python:3.11-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+WORKDIR /app
+
+# copy entire repository into image so /app/backend exists
+COPY . /app
+
+# quick debug listing to show what's copied (safe to keep)
+RUN echo "---- listing /app top-level ----" && ls -la /app || true \
+ && echo "---- listing /app/src ----" && ls -la /app/src || true \
+ && echo "---- listing /app/backend ----" && ls -la /app/backend || true
+
+# install python deps: use /app/requirements.txt or /app/src/requirements.txt
+RUN if [ -f /app/requirements.txt ]; then \
+      python -m pip install --upgrade pip && python -m pip install --no-cache-dir -r /app/requirements.txt ; \
+    elif [ -f /app/src/requirements.txt ]; then \
+      python -m pip install --upgrade pip && python -m pip install --no-cache-dir -r /app/src/requirements.txt ; \
+    else \
+      echo "ERROR: no requirements.txt found at /app or /app/src" && ls -la /app && ls -la /app/src || true && exit 1 ; \
+    fi
+
+ENV PYTHONPATH=/app
+
+EXPOSE 8000
+
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

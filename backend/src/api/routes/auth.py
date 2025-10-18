@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from ...domain.services.user_service import UserService
-from ...domain.services.jwt_service import JWTService
-from ...domain.repositories.user_repository import UserRepositoryInterface
-from src.infrastructure.db.postgres_repository import PostgresUserRepository
-from ...domain.entities.user import User
-from src.api.dependencies import get_db
+from domain.services.user_service import UserService, UserAlreadyExists
+from domain.services.jwt_service import JWTService
+from domain.repositories.user_repository import UserRepositoryInterface
+from infrastructure.db.postgres_repository import PostgresUserRepository
+from domain.entities.user import User
+from api.dependencies import get_db
 from pydantic import BaseModel, EmailStr
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -26,23 +26,22 @@ class LoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
-@router.post("/register", response_model=RegisterResponse)
+@router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
 def register(request: RegisterRequest, db: Session = Depends(get_db)):
     user_repo: UserRepositoryInterface = PostgresUserRepository(db)
-    service = UserService(user_repo)
+    svc = UserService(user_repo)
     try:
-        user = service.register_user(request.email, request.password)
+        user = svc.register_user(request.email, request.password)
         return RegisterResponse(id=user.id, email=user.email)
+    except UserAlreadyExists as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception:
+        # log in real app; keep response generic for tests
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
 @router.post("/login", response_model=LoginResponse)
-
-@router.get("/", summary="auth root / health")
-async def auth_root():
-    return {"message": "Auth router is mounted (use /auth/register for registration)"}
-
-
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     user_repo: UserRepositoryInterface = PostgresUserRepository(db)
     service = UserService(user_repo)
@@ -51,3 +50,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     token = JWTService.create_token(user.id)
     return LoginResponse(access_token=token)
+
+@router.get("/", summary="auth root / health")
+async def auth_root():
+    return {"message": "Auth router is mounted (use /auth/register for registration)"}

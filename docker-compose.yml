@@ -2,7 +2,9 @@ version: '3.9'
 
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile   # the file you just created
     container_name: finance_backend
     ports:
       - "8000:8000"
@@ -12,7 +14,12 @@ services:
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
     environment:
       - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-      - JWT_SECRET=supersecretkey  
+      - JWT_SECRET=supersecretkey
+     # - PYTHONPATH=/app
+    # For development: bind-mount your repo so code changes appear immediately.
+    # If you want an immutable production image, remove the 'volumes' section.
+    #volumes:
+    #  - .:/app
 
   frontend:
     build: ./frontend
@@ -36,7 +43,7 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
       timeout: 5s
-      retries: 5  
+      retries: 5
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql

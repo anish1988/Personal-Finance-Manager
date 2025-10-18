@@ -2,6 +2,7 @@ import jwt
 from datetime import datetime, timedelta
 from src.config.settings import settings
 
+
 class JWTService:
     @staticmethod
     def create_token(user_id: int) -> str:

@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from ...domain.repositories.user_repository import UserRepositoryInterface
-from ...domain.entities.user import User
-from src.infrastructure.db.models import User as UserModel
+from domain.repositories.user_repository import UserRepositoryInterface
+from domain.entities.user import User
+from infrastructure.db.models import User as UserModel
 
 class PostgresUserRepository(UserRepositoryInterface):
     def __init__(self, db: Session):
