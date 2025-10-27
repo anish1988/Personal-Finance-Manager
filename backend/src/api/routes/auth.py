@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from domain.services.user_service import UserService, UserAlreadyExists
-from domain.services.jwt_service import JWTService
+from src.domain.services.jwt_service import JWTService
 from domain.repositories.user_repository import UserRepositoryInterface
 from infrastructure.db.postgres_repository import PostgresUserRepository
+from api.dependencies import get_current_user
 from domain.entities.user import User
 from api.dependencies import get_db
 from pydantic import BaseModel, EmailStr
@@ -25,6 +26,11 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+class MeResponse(BaseModel):
+    id: int
+    email: EmailStr
+    created_at: str | None
 
 @router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
 def register(request: RegisterRequest, db: Session = Depends(get_db)):
@@ -54,3 +60,8 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
 @router.get("/", summary="auth root / health")
 async def auth_root():
     return {"message": "Auth router is mounted (use /auth/register for registration)"}
+
+@router.get("/me", response_model=MeResponse)
+def me(current_user = Depends(get_current_user)):
+    # current_user is domain.entities.user.User
+    return MeResponse(id=current_user.id, email=current_user.email, created_at=current_user.created_at.isoformat() if current_user.created_at else None)

@@ -7,11 +7,10 @@ pydantic
 python-dotenv
 alembic
 bcrypt
-jwt
 config
 pydantic-settings
 email-validator
 pydantic[email]
 pytest  
 httpx  
-PyJWT
+PyJWT==2.10.1
