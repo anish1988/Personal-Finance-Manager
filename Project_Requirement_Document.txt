@@ -550,7 +550,7 @@ Perfect! Let’s break down **Epic 2: User & Authentication** into **detailed ta
 
 ### **Task 2.1.1: Database & Model**
 
-* **2.1.1.1:** Create `users` table (id, email, hashed_password, created_at, updated_at)
+* **2.1.1.1:** Create `users` table (id, email, password_hash, created_at, updated_at)
 * **2.1.1.2:** Create `User` SQLAlchemy model
 * **2.1.1.3:** Create repository layer (`UserRepository`) for DB operations
 * **2.1.1.4:** Write Alembic migration for `users` table
@@ -940,4 +940,63 @@ Deployment & infra → 12-Factor App + Docker best practices
 Process/methodology → Agile Scrum + CI/CD + DevOps
 
 
+Epic 3: Transactions (Manual) — overview
 
+Goal: Let authenticated users create (manual) transactions and view/list them with filtering (date range, category, type). Basic validations, persistence, and unit/integration tests included.
+
+Major user stories
+
+3.1: As a user, I can add a transaction (date, amount, description, type, category) manually.
+
+3.2: As a user, I can list my transactions with pagination and filters (date range, category, type).
+
+3.3: As a user, I can update or delete a transaction (optional next phase).
+
+Acceptance criteria (for MVP)
+
+POST /transactions creates a transaction for the authenticated user.
+
+GET /transactions lists transactions for the authenticated user and supports ?from=YYYY-MM-DD&to=YYYY-MM-DD&type=expense&category=groceries&page=1&page_size=20.
+
+Input validation (amount > 0, date present, type in {income,expense}).
+
+Transaction saved in DB with user_id reference.
+
+Unit tests for service; integration tests for endpoints (in-memory DB).
+
+Follow folder blueprint.
+
+Tasks & Subtasks (Agile checklist)
+Task 3.1: DB & Models
+
+3.1.1 Add Transaction SQLAlchemy model in backend/src/infrastructure/db/models.py (if not already present).
+
+3.1.2 Add Alembic migration for transactions table (with user_id FK).
+
+3.1.3 Ensure Category table exists (we seeded earlier).
+
+Task 3.2: Domain Layer
+
+3.2.1 Create backend/src/domain/entities/transaction.py (domain entity / value object).
+
+3.2.2 Create backend/src/domain/repositories/transaction_repository.py (interface).
+
+3.2.3 Create backend/src/domain/services/transaction_service.py (business logic).
+
+Task 3.3: Infrastructure
+
+3.3.1 Add methods in PostgresRepository (or new TransactionPostgresRepository) for CRUD.
+
+Task 3.4: API layer
+
+3.4.1 Add pydantic schemas backend/src/api/schemas/transaction.py.
+
+3.4.2 Add routes backend/src/api/routes/transactions.py (POST /transactions, GET /transactions).
+
+3.4.3 Wire routes in main.py (app.include_router).
+
+Task 3.5: Tests
+
+3.5.1 Unit tests for TransactionService.
+
+3.5.2 Integration tests for /transactions endpoints (in-memory DB, override get_db and get_current_user).

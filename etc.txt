@@ -1,0 +1,132 @@
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from domain.services.user_service import UserService, UserAlreadyExists
+from domain.services.jwt_service import JWTService
+from domain.repositories.user_repository import UserRepositoryInterface
+from infrastructure.db.postgres_repository import PostgresUserRepository
+from domain.entities.user import User
+from api.dependencies import get_db
+from pydantic import BaseModel, EmailStr
+
+router = APIRouter(prefix="/auth", tags=["auth"])
+
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+class RegisterResponse(BaseModel):
+    id: int
+    email: EmailStr
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+@router.post("/register", response_model=RegisterResponse)
+def register(request: RegisterRequest, db: Session = Depends(get_db)):
+    try:
+        user_repo = PostgresUserRepository(db)
+        svc = UserService(user_repo)
+        user = svc.register_user(request.email, request.password)
+        return RegisterResponse(id=user.id, email=user.email)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()   # print full exception
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post("/login", response_model=LoginResponse)
+
+@router.get("/", summary="auth root / health")
+async def auth_root():
+    return {"message": "Auth router is mounted (use /auth/register for registration)"}
+
+
+def login(request: LoginRequest, db: Session = Depends(get_db)):
+    user_repo: UserRepositoryInterface = PostgresUserRepository(db)
+    service = UserService(user_repo)
+    user = service.authenticate_user(request.email, request.password)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    token = JWTService.create_token(user.id)
+    return LoginResponse(access_token=token)
+
+
+
+
+
+ def create(self, tx: Transaction) -> Transaction:
+        db_tx = Transaction(
+            user_id=tx.user_id,
+            tx_date=tx.tx_date,
+            amount=tx.amount,
+            currency=tx.currency,
+            transaction_type=tx.transaction_type,
+            description=tx.description,
+            category_id=tx.category_id
+        )
+        self.db.add(db_tx)
+        self.db.commit()
+        self.db.refresh(db_tx)
+        tx.id = db_tx.id
+        tx.created_at = db_tx.created_at
+        tx.updated_at = db_tx.updated_at
+        return tx
+
+    def list_for_user(
+        self, user_id: int, from_date: Optional[date]=None, to_date: Optional[date]=None,
+        tx_type: Optional[str]=None, category_id: Optional[int]=None, offset: int=0, limit: int=20
+    ) -> List[Transaction]:
+        q = self.db.query(Transaction).filter(Transaction.user_id == user_id)
+        if from_date:
+            q = q.filter(Transaction.tx_date >= from_date)
+        if to_date:
+            q = q.filter(Transaction.tx_date <= to_date)
+        if tx_type:
+            q = q.filter(Transaction.transaction_type == tx_type)
+        if category_id:
+            q = q.filter(Transaction.category_id == category_id)
+        q = q.order_by(Transaction.tx_date.desc()).offset(offset).limit(limit)
+        results = []
+        for r in q.all():
+            results.append(Transaction(
+                id=r.id, user_id=r.user_id, tx_date=r.tx_date, amount=float(r.amount),
+                currency=r.currency, transaction_type=r.transaction_type,
+                description=r.description, category_id=r.category_id,
+                created_at=r.created_at, updated_at=r.updated_at
+            ))
+        return results
+
+
+
+git add backend/src/domain/entities/transaction.py
+git add backend/src/domain/repositories/transaction_repository.py
+git add backend/src/domain/services/transaction_service.py
+git add backend/src/infrastructure/db/models.py
+git add backend/src/infrastructure/db/postgres_repository.py
+git add backend/src/api/schemas/transaction.py
+git add backend/src/api/routes/transactions.py
+git add backend/src/tests/test_transactions_integration.py
+git add frontend/src/components/TransactionForm.jsx
+
+
+
+pytest -q backend/src/tests/test_jwt_service.py backend/src/tests/test_user_service.py
+
+
+TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE3NjE2MTc3MzgsImlhdCI6MTc2MTUzMTMzOH0.u0sueewJGUjJZzCv240mxWY4hkzjzghdkp18ig-VnaY
+curl -H "Authorization: Bearer $TOKEN" http://localhost:8000/auth/me
+
+
+Icurl -s -X POST "http://localhost:8000/auth/login" -H "Content-Type: application/json" -d '{"email":"me2@example.com","password":"strongpassword"}' | jq"password":"strongpassword"}' | jq
+
+
+
+docker exec -it finance_db bash
+root@7f4b11b02b1c:/# psql -U postgres -d 
+
+
+finance_db=# SELECT id, date, tx_date, type, transaction_type, category, category_id FROM transactions LIMIT 10;

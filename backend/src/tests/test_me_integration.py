@@ -27,8 +27,8 @@ app.dependency_overrides[real_get_db] = override_get_db
 
 client = TestClient(app)
 
-def create_user_in_db(db, email, hashed_password):
-    u = UserModel(email=email, hashed_password=hashed_password)
+def create_user_in_db(db, email, password_hash):
+    u = UserModel(email=email, password_hash=password_hash)
     db.add(u)
     db.commit()
     db.refresh(u)

@@ -29,7 +29,7 @@ class PostgresUserRepository(UserRepositoryInterface):
             updated_at=db_user.updated_at
         )
     
-    
+
     def get_user_by_id(self, user_id: int) -> User | None:
         db_user = self.db.query(UserModel).filter(UserModel.id == user_id).first()
         if not db_user:
@@ -37,7 +37,7 @@ class PostgresUserRepository(UserRepositoryInterface):
         return User(
             id=db_user.id,
             email=db_user.email,
-            hashed_password=db_user.hashed_password,
+            password_hash=db_user.password_hash,
             created_at=db_user.created_at,
             updated_at=db_user.updated_at
         )
