@@ -128,5 +128,5 @@ Icurl -s -X POST "http://localhost:8000/auth/login" -H "Content-Type: applicatio
 docker exec -it finance_db bash
 root@7f4b11b02b1c:/# psql -U postgres -d 
 
-
+psql -U postgres -d finance_db -c "\dt"
 finance_db=# SELECT id, date, tx_date, type, transaction_type, category, category_id FROM transactions LIMIT 10;

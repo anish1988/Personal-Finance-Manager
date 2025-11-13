@@ -8,7 +8,7 @@ sys.path.insert(0, str(project_root))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.api.routes import auth
-from src.api.routes import transactions
+from src.api.routes import transactions, categories, reports, ai_insights, uploads
 
 
 app = FastAPI(
@@ -29,3 +29,7 @@ app.add_middleware(
 # Include auth routes
 app.include_router(auth.router)
 app.include_router(transactions.router)
+app.include_router(categories.router)
+app.include_router(reports.router)
+app.include_router(ai_insights.router)
+app.include_router(uploads.router)

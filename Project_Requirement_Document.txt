@@ -1000,3 +1000,351 @@ Task 3.5: Tests
 3.5.1 Unit tests for TransactionService.
 
 3.5.2 Integration tests for /transactions endpoints (in-memory DB, override get_db and get_current_user).
+
+
+🧩 Epic 4.2 – Reporting & Analytics
+🎯 Goal
+
+Provide insightful financial reports for the authenticated user — initially via simple endpoints, later extendable to AI-based insights.
+
+🧠 Feature Scope (Phase 1: Foundational Reports)
+
+Summary Report — total income, total expenses, and net balance.
+
+Category-wise Breakdown — amount per category (income vs expense).
+
+Date-range Filtering — reports limited by start_date and end_date.
+
+🧠 Epic 4.3 – AI-Enhanced Spending Insights
+🎯 Goal
+
+Give users intelligent insights about their spending patterns using LLM-powered analysis (via LangChain).
+The AI will summarize, detect anomalies, and suggest improvements based on transaction history.
+
+⚙️ Feature Scope
+
+Analyze user transactions using LangChain-based pipeline.
+
+Generate human-readable insights (summaries, savings tips, unusual expenses).
+
+Return results through an API endpoint: /ai/insights.
+
+Maintain modularity so future models (like OpenAI, Claude, or local models) can be swapped easily.
+
+🧱 Folder Structure (extends existing)
+backend/
+│── src/
+│   │── domain/
+│   │   │── services/
+│   │   │   │── ai_insight_service.py        # business logic for AI insights
+│   │── infrastructure/
+│   │   │── ai/
+│   │   │   │── insight_analyzer.py          # LangChain/LangGraph pipeline
+│   │── api/
+│   │   │── routes/
+│   │   │   │── ai_insights.py               # FastAPI route for insights
+
+
+
+# Epic 5 — Frontend & Statement Ingestion (Overview)
+
+**Goal:** Allow users to upload monthly bank statements (Excel & PDF), ingest and standardize transactions into the DB, provide a review UI to confirm categories and corrections, and enable the analytics/AI layers to run on the consolidated data.
+
+**Key features**
+
+1. Frontend upload UI (bank name, account type, file upload, month selector).
+2. Backend upload API + background processing pipeline for parsing (Excel & PDF).
+3. Transaction normalization (columns → canonical fields).
+4. Auto-categorization (rules + LLM fallback) and UPI/tags detection.
+5. Human-in-the-loop review interface (approve/adjust categories, add comments).
+6. Persist cleaned transactions to DB (linked to user + source metadata).
+7. Trigger reports & AI insights automatically after ingestion.
+
+---
+
+# Architecture & Components (high level)
+
+* **Frontend (React)**
+
+  * Upload form & file list with statuses (uploaded, processing, needs_review, done).
+  * Review UI: list of parsed transactions with suggested category, inline edit.
+  * Progress/notifications and charts/dashboard integration.
+
+* **Backend (FastAPI)**
+
+  * `POST /uploads` — accepts multipart form (bank_name, account_type, statement_month, files[]).
+  * `GET /uploads/{upload_id}` — status & preview.
+  * `GET /uploads/{upload_id}/transactions` — preview parsed transactions (with suggested categories).
+  * `POST /uploads/{upload_id}/confirm` — commit parsed transactions to DB.
+  * `GET /uploads/{upload_id}/errors` — parsing errors.
+
+* **Processing worker (background)**
+
+  * Use **Celery + Redis** (or RQ) for background tasks, or simple FastAPI background tasks for low volume.
+  * Tasks:
+
+    * `parse_file(file_path, metadata)` → extract raw rows (pandas for Excel, Camelot/Tabula or pdfplumber/pdfminer for PDF tables, or Tika/Unstructured for free-text statements).
+    * `normalize_rows(rows)` → map provider columns to canonical schema (`tx_date`, `amount`, `currency`, `description`, `transaction_type`, `category_name`, `upi_flag`, `raw_text`).
+    * `categorize_transactions(rows)` → deterministic rules (regex, merchant mapping, UPI detection) + LLM for fuzzy matches.
+    * `save_preview(upload_id, rows)` → store intermediate preview records in DB.
+    * `notify_user(upload_id)` → push WebSocket/notification.
+
+* **AI / LLM integration**
+
+  * Rule-first approach: try deterministic rules (merchant mapping, keyword matching, regex for UPI ids).
+  * If rules are low-confidence, call LLM (via LangChain) with a short prompt and a small batch of transactions for classification suggestions.
+  * Save model suggestions and a confidence score for each transaction.
+
+* **Storage**
+
+  * Files: store original uploads in S3 (or a Docker volume `./uploads` for now).
+  * Parsed preview: DB table `upload_transactions_preview`.
+  * Final saved transactions: `transactions` table (already present) with `source_upload_id` metadata.
+
+* **Security & Privacy**
+
+  * Ensure uploads are stored encrypted at rest in production (S3 server-side encryption).
+  * Limit file types & sizes; scan for malware if relevant.
+  * Auth: only allow uploads tied to the authenticated user.
+
+---
+
+# Data Model Additions (DB)
+
+Add these tables (or equivalent via SQLAlchemy models + Alembic migrations):
+
+1. `uploads`
+
+   ```
+   id, user_id, bank_name, account_type, statement_month (DATE or YYYY-MM), status (uploaded/processing/needs_review/done/failed), created_at, updated_at, original_filename, storage_path
+   ```
+
+2. `upload_transactions_preview`
+
+   ```
+   id, upload_id, tx_date, amount, currency, description, transaction_type, suggested_category_id, confidence_score, upi_flag(Boolean), raw_text, parsed_at
+   ```
+
+3. Add `source_upload_id` column to `transactions` (nullable) to link finalized rows back to uploads:
+
+   ```
+   transactions.source_upload_id -> uploads.id
+   ```
+
+---
+
+# Processing Pipeline (detailed)
+
+1. **Upload** (user posts files)
+
+   * Backend receives multipart request, creates an `uploads` row status=`uploaded`, stores original files on disk/S3, then enqueues `process_upload(upload_id)`.
+
+2. **Parsing**
+
+   * For **Excel**: Use `pandas.read_excel()` with heuristics (header row detection).
+   * For **PDF**: Try table-extraction libraries:
+
+     * If bank PDFs are tabular (many are), prefer `camelot` (requires Ghostscript) or `tabula-py` (Java). If unreliable, fallback to `pdfplumber` with heuristics (detect columns by whitespace).
+     * For free-text PDFs (images or scanned): use OCR (Tesseract) + parsing (only if needed; heavy).
+   * Normalize extracted rows into canonical fields.
+
+3. **Normalization**
+
+   * Clean date formats, unify debit/credit signs, deduce `transaction_type` (expense vs income) based on credit/debit or positive/negative amounts.
+   * Detect currency from file or labels.
+   * Extract UPI / VPA (regex like `\w+@\w+`) and set `upi_flag = True` when matched.
+
+4. **Categorization (rules + LLM)**
+
+   * First pass: merchant name map (configurable list). For example `PAYTM`, `AMAZON` → `Shopping`.
+   * Regex rules: `ATM`, `FUEL`, `PAYMENT`, `GROCERY`, `UPI` hints.
+   * Otherwise, call LLM with: sample transaction description, date, amount, asking for one of the standard categories. LLM returns `category_name` and `confidence`. Use LangChain for batching & caching.
+
+5. **Preview & Human Review**
+
+   * Save preview rows in `upload_transactions_preview` with suggested categories and confidence.
+   * Notify user. Frontend shows preview grid with inline edit (category dropdown, amount, date). Each row can be accepted, changed, or ignored. Options to bulk-accept suggestions.
+
+6. **Finalize**
+
+   * User clicks **Confirm** → a backend endpoint moves accepted preview rows into `transactions` table, linking `source_upload_id`. Status becomes `done`. Unaccepted rows remain for manual creation or later.
+
+7. **Post-processing**
+
+   * Trigger reporting generation and AI-insights for the user (re-run reports/insights automatically or queue them).
+
+---
+
+# Frontend: UI & UX (React)
+
+Components to build:
+
+1. **UploadForm**
+
+   * Fields: Bank (select or free text), Account type (savings/credit), Statement month, Files (multi).
+   * Submit button. Shows immediate upload progress.
+
+2. **UploadsList**
+
+   * Shows past uploads with statuses, created date, actions (view preview, download original).
+
+3. **UploadPreview**
+
+   * Grid/table of parsed rows with columns (date, description, amount, suggested category, confidence, upi flag).
+   * Inline edit: category dropdown (existing categories + create new), edit description/amount. Row-level accept/reject toggle. Bulk actions: accept all, auto-apply for items above confidence threshold.
+
+4. **Review & Commit**
+
+   * Button to finalize accepted rows. Option to skip low-confidence items into a review queue.
+
+5. **Notifications / WebSocket**
+
+   * Real-time updates when processing finishes.
+
+6. **Analytics Integration**
+
+   * After commit, refresh reports/dashboard.
+
+UX tips:
+
+* Show examples of supported bank statement formats.
+* Allow small manual CSV mappings if an unusual Excel layout is uploaded (advanced).
+* Provide a help modal about privacy & file retention.
+
+---
+
+# Libraries & Tools (suggestions)
+
+* Backend parsing:
+
+  * Excel: `pandas`, `openpyxl`
+  * PDF: `camelot` (tabular), `pdfplumber`, `tabula-py`, `pytesseract` (OCR fallback)
+* Background tasks:
+
+  * `Celery + Redis` or `RQ + Redis`. Celery is common and robust.
+  * For small scale, FastAPI background tasks are okay but not ideal for long-running tasks.
+* LLM / AI:
+
+  * `langchain` + provider (OpenAI or another model). Batch requests and cache results.
+* Uploader: `python-multipart` (FastAPI handles multipart).
+* Storage: Local volume (`./uploads`) for dev; S3 for prod.
+* DB: Postgres (already used).
+* Frontend: React + axios / fetch; file upload component; Material-UI or Tailwind for UI.
+
+---
+
+# Security & Ops
+
+* Limit max upload file size (e.g., 20–50 MB). Enforce file type checks.
+* Run parsing & LLM calls asynchronously to avoid HTTP timeouts.
+* Sanitize any extracted text before sending to LLM (PII caution). Consider redaction rules or user opt-in.
+* Implement rate-limits for uploads per user to avoid abuse.
+* Store API keys (OpenAI) via environment variables and secrets management for production.
+
+---
+
+# Testing Strategy
+
+* Unit tests for parsing helpers and normalization logic (use saved sample statements).
+* Integration tests for full pipeline using a small test PDF/Excel fixture.
+* E2E tests: upload → processing → preview → finalize (fast-mode using in-memory mocks for LLM).
+* Mock LLM calls in CI to avoid cost and flakiness; run a small “smoke” LLM test in staging.
+
+---
+
+# Milestones & Tasks (Agile checklist)
+
+**Milestone 5.0 — Ingestion MVP**
+
+* Task 5.1: File upload API + DB `uploads` table.
+* Task 5.2: Save files to storage and enqueue processing.
+* Task 5.3: Parser for common Excel statement layouts (ICICI/SBI/HDFC sample parsers).
+* Task 5.4: PDF table parser pipeline using `pdfplumber`/`camelot`.
+* Task 5.5: Normalization & rule-based categorization.
+* Task 5.6: LLM categorization fallback using LangChain (batched).
+* Task 5.7: Preview UI in frontend & finalize endpoint.
+* Task 5.8: Persist finalized transactions and trigger reports.
+* Task 5.9: Tests & CI integration (use fixture files + mocked LLM).
+
+**Milestone 5.1 — UX polish & scale**
+
+* Background job monitoring UI, bulk operations, recoverability, S3 integration, user settings.
+
+---
+
+# Immediate next task (actionable) — I recommend we implement this first
+
+**Task 5.1: Backend: Upload endpoint + uploads DB table + store files + enqueue parse job**
+
+Why first? Because everything else depends on getting files into the system.
+
+### Deliverables for this task
+
+1. DB model: `Upload` model + Alembic migration.
+2. API endpoint: `POST /uploads` (authenticated) — store metadata and original files.
+3. Save files to `./uploads/{user_id}/{upload_id}/original_filename`.
+4. Enqueue a background job `process_upload(upload_id)` (Celery/RQ or FastAPI background task).
+5. Return `upload_id` and initial status.
+
+### Example API spec (FastAPI)
+
+```py
+# POST /uploads
+multipart/form-data:
+ - bank_name: str
+ - account_type: str
+ - statement_month: str (YYYY-MM)
+ - files: list[file]
+Response: { upload_id: int, status: "uploaded" }
+```
+
+### Code hints & snippets
+
+* FastAPI endpoint (skeleton — drop into your `api/routes/uploads.py`):
+
+```python
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
+from api.dependencies import get_db, get_current_user
+import os, uuid
+from infrastructure.db.postgres_repository import PostgresUploadRepository  # you will implement
+
+router = APIRouter(prefix="/uploads", tags=["uploads"])
+
+@router.post("/")
+async def upload_statement(
+    bank_name: str = Form(...),
+    account_type: str = Form(...),
+    statement_month: str = Form(...),
+    files: list[UploadFile] = File(...),
+    db = Depends(get_db),
+    current_user = Depends(get_current_user),
+):
+    # create upload row in DB, get upload_id
+    upload_repo = PostgresUploadRepository(db)
+    upload = upload_repo.create_upload(user_id=current_user.id, bank_name=bank_name, account_type=account_type, statement_month=statement_month)
+    upload_dir = f"./uploads/{current_user.id}/{upload.id}"
+    os.makedirs(upload_dir, exist_ok=True)
+    for f in files:
+        path = os.path.join(upload_dir, f.filename)
+        with open(path, "wb") as out:
+            content = await f.read()
+            out.write(content)
+        upload_repo.add_file_record(upload.id, f.filename, path)
+    # enqueue background job (or start background task)
+    # e.g., celery.send_task("tasks.process_upload", args=[upload.id])
+    return {"upload_id": upload.id, "status": upload.status}
+```
+
+6. Implement a very small **placeholder parser** for now (e.g., if `.xlsx` → pandas read; if `.pdf` → pdfplumber to extract text lines). We’ll improve per-bank rules later.
+
+---
+
+# What I’ll deliver next (if you want me to implement Task 5.1 now)
+
+* SQLAlchemy model for `Upload` and `UploadFile` and Alembic migration script.
+* FastAPI `api/routes/uploads.py` endpoint code (ready to drop in).
+* Postgres repository methods for `create_upload`, `add_file_record`.
+* Minimal background task runner using FastAPI `BackgroundTasks` (optionally Celery skeleton).
+* A minimal frontend `UploadForm` React component to call the endpoint and show immediate status.
+
+Tell me: do you want me to **implement Task 5.1 now** (generate the code & migration + frontend upload form), or would you prefer I generate just the backend pieces first?

@@ -15,6 +15,7 @@ services:
     environment:
       - DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - JWT_SECRET=supersecretkey
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
      # - PYTHONPATH=/app
     # For development: bind-mount your repo so code changes appear immediately.
     # If you want an immutable production image, remove the 'volumes' section.

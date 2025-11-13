@@ -8,4 +8,8 @@ class Settings(BaseSettings):
     JWT_SECRET: str = os.getenv("JWT_SECRET", "supersecretkey")
     JWT_EXPIRE_HOURS: int = int(os.getenv("JWT_EXPIRE_HOURS", 12))
 
+     # Uploads
+    UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "/app/uploads")  # inside container
+    MAX_UPLOAD_FILE_SIZE_MB: int = int(os.getenv("MAX_UPLOAD_FILE_SIZE_MB", 50))
+
 settings = Settings()
